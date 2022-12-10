@@ -7,7 +7,15 @@ LIB_PATH='/usr/lib/pxc'
 . ${LIB_PATH}/vault.sh
 
 GARBD_OPTS=""
-SOCAT_OPTS="TCP-LISTEN:4444,reuseaddr,retry=30"
+SOCAT4_OPTS="TCP4-LISTEN:4444,reuseaddr,retry=30"
+SOCAT6_OPTS="TCP6-LISTEN:4444,reuseaddr,retry=30"
+SOCAT_OPTS=$SOCAT4_OPTS
+LOCAL_IP=$(hostname -i)
+if [[ "${LOCAL_IP}" =~ .*:.* ]]; then
+	echo "[INFO] Detected IPv6 host. Setting v6 socat opts"
+	SOCAT_OPTS=$SOCAT6_OPTS
+fi
+
 SST_INFO_NAME=sst_info
 
 INSECURE_ARG=""
@@ -65,7 +73,14 @@ check_ssl() {
 
 	if [ -f "$CA" -a -f "$KEY" -a -f "$CERT" ]; then
 		GARBD_OPTS="socket.ssl_ca=${CA};socket.ssl_cert=${CERT};socket.ssl_key=${KEY};socket.ssl_cipher=;pc.weight=0;${GARBD_OPTS}"
-		SOCAT_OPTS="openssl-listen:4444,reuseaddr,cert=${CERT},key=${KEY},cafile=${CA},verify=1,retry=30"
+		SEC_V4_SOCAT_OPTS="openssl-listen:4444,pf=ip4,reuseaddr,cert=${CERT},key=${KEY},cafile=${CA},verify=1,retry=30"
+		SEC_V6_SOCAT_OPTS="openssl-listen:4444,pf=ip6,reuseaddr,cert=${CERT},key=${KEY},cafile=${CA},verify=1,retry=30"
+		SOCAT_OPTS=$SEC_V4_SOCAT_OPTS
+		local LOCAL_IP=$(hostname -i)
+		if [[ "${LOCAL_IP}" =~ .*:.* ]]; then
+			echo "[INFO] Detected IPv6 host. Setting v6 socat opts"
+			SOCAT_OPTS=$SEC_V6_SOCAT_OPTS
+		fi
 	fi
 }
 
@@ -79,13 +94,18 @@ request_streaming() {
 		exit 1
 	fi
 
+	SST_URL="xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1"
+	if [[ "${LOCAL_IP}" =~ .*:.* ]]; then
+		SST_URL="xtrabackup-v2:[$LOCAL_IP]:4444/xtrabackup_sst//1"
+	fi
+
 	timeout -k 25 20 \
 		garbd \
 		--address "gcomm://$NODE_NAME.$PXC_SERVICE?gmcast.listen_addr=tcp://0.0.0.0:4567" \
 		--donor "$NODE_NAME" \
 		--group "$PXC_SERVICE" \
 		--options "$GARBD_OPTS" \
-		--sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
+		--sst "$SST_URL" \
 		2>&1 | tee /tmp/garbd.log
 
 	if grep 'State transfer request failed' /tmp/garbd.log; then
