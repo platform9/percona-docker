@@ -1,4 +1,4 @@
-BUILDDIR=$(CURDIR)/percona-xtradb-cluster-5.7-backup
+BUILDDIR=$(CURDIR)
 registry_url ?= quay.io
 image_name = ${registry_url}/platform9/percona-xtradb-cluster-operator
 DOCKERFILE?=$(BUILDDIR)/Dockerfile
