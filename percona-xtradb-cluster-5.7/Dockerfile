@@ -6,7 +6,7 @@ RUN export GO111MODULE=off; \
     curl -Lf -o /go/src/github.com/percona/percona-xtradb-cluster-operator/src/peer-list.go https://raw.githubusercontent.com/percona/percona-xtradb-cluster-operator/main/cmd/peer-list/main.go; \
     go build peer-list.go
 
-FROM redhat/ubi8-minimal
+FROM rockylinux/rockylinux:9
 
 LABEL org.opencontainers.image.authors="info@percona.com"
 
