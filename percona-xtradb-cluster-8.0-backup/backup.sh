@@ -76,6 +76,11 @@ function request_streaming() {
         exit 1
     fi
 
+    SST_URL="xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1"
+	if [[ "${LOCAL_IP}" =~ .*:.* ]]; then
+		SST_URL="xtrabackup-v2:[$LOCAL_IP]:4444/xtrabackup_sst//1"
+	fi
+
     set +o errexit
     log 'INFO' 'Garbd was started'
     garbd \
@@ -83,7 +88,7 @@ function request_streaming() {
         --donor "$NODE_NAME" \
         --group "$PXC_SERVICE" \
         --options "$GARBD_OPTS" \
-        --sst "xtrabackup-v2:$LOCAL_IP:4444/xtrabackup_sst//1" \
+        --sst "$SST_URL" \
         --recv-script="/usr/bin/run_backup.sh"
     EXID_CODE=$?
 
