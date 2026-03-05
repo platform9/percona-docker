@@ -12,7 +12,7 @@ if [  "$1" = 'logrotate' ]; then
         rm -rf /tmp/passwd
     fi
     # Use flock to prevent concurrent logrotate runs
-    exec go-cron "0 0 * * *" sh -c "flock -n /var/lock/logrotate-mysql.lock logrotate -s /opt/percona/logrotate/logrotate.status /opt/percona/logrotate/logrotate-$SERVICE_TYPE.conf; /usr/bin/find /var/lib/mysql/ -name GRA_*.log -mtime +7 -delete"
+    exec go-cron "0 */6 * * *" sh -c "flock -n /var/lock/logrotate-mysql.lock logrotate -s /opt/percona/logrotate/logrotate.status /opt/percona/logrotate/logrotate-$SERVICE_TYPE.conf; /usr/bin/find /var/lib/mysql/ -name GRA_*.log -mtime +7 -delete"
 else
     if [ "$1" = 'fluent-bit' ]; then
         fluentbit_opt+='-c /etc/fluentbit/fluentbit.conf'
