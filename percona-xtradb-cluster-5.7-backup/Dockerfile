@@ -105,7 +105,7 @@ RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 ENV MC_VERSION=RELEASE.2024-11-17T19-35-25Z
 ENV MC_SHA256SUM=544d2d11c32cb4ed11b27338935a9cc434e15b692ff3d1529a624d341fe2ffc5
 RUN set -ex; \
-    curl -o /usr/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
+    curl -o /usr/bin/mc -LO https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
 	&& chmod +x /usr/bin/mc \
 	&& echo "${MC_SHA256SUM} /usr/bin/mc" | sha256sum -c - \
 	&& curl -o /licenses/LICENSE.mc \
