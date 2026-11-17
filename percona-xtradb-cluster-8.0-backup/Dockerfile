@@ -103,14 +103,11 @@ RUN set -ex; \
 RUN install -d -o 1001 -g 0 -m 0775 /backup; \
 	mkdir /usr/lib/pxc
 
-ENV MC_VERSION=RELEASE.2024-11-17T19-35-25Z
-ENV MC_SHA256SUM=544d2d11c32cb4ed11b27338935a9cc434e15b692ff3d1529a624d341fe2ffc5
-RUN set -ex; \
-    curl -o /usr/bin/mc -O https://dl.minio.io/client/mc/release/linux-amd64/archive/mc.${MC_VERSION} \
-	&& chmod +x /usr/bin/mc \
-	&& echo "${MC_SHA256SUM} /usr/bin/mc" | sha256sum -c - \
-	&& curl -o /licenses/LICENSE.mc \
-	https://raw.githubusercontent.com/minio/mc/${MC_VERSION}/LICENSE
+# NOTE: the MinIO client (mc) is intentionally NOT installed. MinIO stopped serving
+# the community mc binaries (dl.minio.io returns 410 Gone), which broke this build.
+# mc is only used for S3-compatible backup storage (run_backup.sh, lib/pxc/backup.sh,
+# recovery-cloud.sh); PVC/filesystem backups do not need it. S3 backups will fail
+# with "mc: not found" until mc is added back from a Platform9-hosted binary.
 
 COPY lib/pxc /usr/lib/pxc
 COPY recovery-*.sh run_backup.sh backup.sh get-pxc-state /usr/bin/
